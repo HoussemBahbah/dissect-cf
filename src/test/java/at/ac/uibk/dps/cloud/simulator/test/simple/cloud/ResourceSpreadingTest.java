@@ -26,6 +26,7 @@
 package at.ac.uibk.dps.cloud.simulator.test.simple.cloud;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -36,10 +37,15 @@ import org.junit.Test;
 import at.ac.uibk.dps.cloud.simulator.test.ConsumptionEventAssert;
 import at.ac.uibk.dps.cloud.simulator.test.ConsumptionEventFoundation;
 import hu.mta.sztaki.lpds.cloud.simulator.Timed;
+import hu.mta.sztaki.lpds.cloud.simulator.energy.DirectEnergyMeter;
+import hu.mta.sztaki.lpds.cloud.simulator.energy.powermodelling.LinearConsumptionModel;
+import hu.mta.sztaki.lpds.cloud.simulator.energy.powermodelling.PowerState;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ConsumptionEventAdapter;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinConsumer;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinProvider;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumption;
+import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceSpreader;
+import hu.mta.sztaki.lpds.cloud.simulator.notifications.StateDependentEventHandler;
 
 public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 	MaxMinProvider offer;
@@ -61,7 +67,7 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 				offer.getTotalProcessed(), 0);
 	}
 
-	@Test(timeout = 100)
+	@Test(/*timeout = 1000*/)
 	public void registrationTest() {
 		ResourceConsumption con1 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
@@ -98,7 +104,7 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 				utilizeProcessed, utilize.getTotalProcessed(), 0);
 	}
 
-	@Test(timeout = 100)
+	@Test()
 	public void basicConsumptionTest() {
 		ResourceConsumption con1 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
@@ -287,5 +293,89 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 				.registerConsumption();
 		Timed.simulateUntilLastEvent();
 
+	}
+	
+	
+	@Test(timeout = 100)
+	public void powerBehaviorTest() {
+		ResourceConsumption con1 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
+		ResourceConsumption con2 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
+		con1.registerConsumption();
+		con2.registerConsumption();
+		Timed.simulateUntil(Timed.getFireCount() + 2000);
+		Assert.assertEquals(null,this.offer.getCurrentPowerBehavior());
+	}
+	
+	@Test()
+	public void setCurrentPowerBehaviorTest() throws InstantiationException, IllegalAccessException, NoSuchFieldException, SecurityException, ClassNotFoundException {
+		ResourceConsumption con1 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
+		ResourceConsumption con2 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
+		con1.registerConsumption();
+		con2.registerConsumption();
+		Timed.simulateUntil(Timed.getFireCount() + 2000);
+		PowerState newPowerBehavior=new PowerState(10, 20,LinearConsumptionModel.class);
+		this.offer.setCurrentPowerBehavior(newPowerBehavior);
+		Assert.assertEquals(newPowerBehavior,this.offer.getCurrentPowerBehavior());
+		this.offer.setCurrentPowerBehavior(this.offer.getCurrentPowerBehavior());
+		Assert.assertEquals(newPowerBehavior,this.offer.getCurrentPowerBehavior());
+	}
+	
+	@Test()
+	public void subscribePowerBehaviorChangeEvents() throws InstantiationException, IllegalAccessException, NoSuchFieldException, SecurityException {
+		Timed.simulateUntil(Timed.getFireCount() + 2000);
+		PowerState newPowerBehavior=new PowerState(10, 20,LinearConsumptionModel.class);
+		this.offer.setCurrentPowerBehavior(newPowerBehavior);
+		DirectEnergyMeter directEnergyMeter=new DirectEnergyMeter(this.offer);
+		this.offer.subscribePowerBehaviorChangeEvents(directEnergyMeter);
+		Assert.assertEquals(false,directEnergyMeter.isSubscribed());
+		this.offer.unsubscribePowerBehaviorChangeEvents(directEnergyMeter);
+		Assert.assertEquals(false,directEnergyMeter.isSubscribed());
+	
+	}
+	
+	@Test(expected=IllegalStateException.class)
+	public void setCurrentPowerBehaviorExceptionTest() {
+		this.offer.setCurrentPowerBehavior(null);
+		Assert.assertEquals(null,this.offer.getCurrentPowerBehavior());
+	}
+	
+//	@Test()
+//	public void startMeterTest() {
+//		ResourceConsumption con1 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+//				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
+//		ResourceConsumption con2 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+//				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
+//		con1.registerConsumption();
+//		con2.registerConsumption();
+//		Timed.simulateUntil(Timed.getFireCount() + 2000);
+//		DirectEnergyMeter directEnergyMeter=new DirectEnergyMeter(this.offer);
+//		
+//		Assert.assertEquals(true,directEnergyMeter.startMeter(20, true));
+//	}
+	
+	@Test(/*timeout = 100*/)
+	public void getTotalProcessedTest() {
+		ResourceConsumption con1 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
+		ResourceConsumption con2 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
+		con1.registerConsumption();
+		con2.registerConsumption();
+		Assert.assertEquals(0.0,this.offer.getTotalProcessed(),0);
+		Timed.simulateUntilLastEvent();
+		Assert.assertEquals(2.0,this.offer.getTotalProcessed(),0);
+	}
+	
+	@Test(/*timeout = 100*/)
+	public void getClonedDepGroupTest() {
+		ResourceConsumption con = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
+		con.registerConsumption();
+		Assert.assertTrue("getClonedDepGroup() should contain offer",Arrays.asList(offer.getSyncer().getClonedDepGroup()).contains(offer));
+		Assert.assertTrue("getClonedDepGroup() should contain utilize",Arrays.asList(offer.getSyncer().getClonedDepGroup()).contains(utilize));
 	}
 }

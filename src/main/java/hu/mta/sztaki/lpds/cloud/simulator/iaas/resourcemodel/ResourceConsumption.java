@@ -284,7 +284,7 @@ public class ResourceConsumption {
 	 * This function can be called even if the provider/consumer is not set yet in
 	 * that case the processing limit for the non-set spreader will be unlimited.
 	 */
-	private void updateHardLimit() {
+	public void updateHardLimit() {
 		final double provLimit = provider == null ? unlimitedProcessing : provider.perTickProcessingPower;
 		final double conLimit = consumer == null ? unlimitedProcessing : consumer.perTickProcessingPower;
 		hardLimit = requestedLimit < provLimit ? requestedLimit : provLimit;
