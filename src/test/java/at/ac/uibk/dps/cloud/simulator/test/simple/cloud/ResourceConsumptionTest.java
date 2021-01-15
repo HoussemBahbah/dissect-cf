@@ -59,7 +59,7 @@ public class ResourceConsumptionTest extends ConsumptionEventFoundation {
 		con = createAUnitConsumption(null);
 	}
 
-	@Test(timeout = 100)
+	@Test(/*timeout = 100*/)
 	public void testConsumption() {
 		con.setConsumer(utilize);
 		con.setProvider(offer);
@@ -246,5 +246,113 @@ public class ResourceConsumptionTest extends ConsumptionEventFoundation {
 		con.registerConsumption();
 		// By this time we should not receive two notifications...
 		Timed.simulateUntilLastEvent();
+	}
+	
+	@Test(timeout = 100)
+	public void setMemSize() {
+		con.setConsumer(utilize);
+		con.setProvider(offer);
+		con.setMemSize(2);
+		Assert.assertEquals(2, con.getMemSize(),0);
+	}
+	
+	@Test(timeout = 100)
+	public void updateHardLimit() {
+		double unlimitedProcessing=Double.MAX_VALUE;
+		con.setProvider(null);
+		con.setConsumer(null);
+		con.updateHardLimit();
+		Assert.assertEquals(unlimitedProcessing, con.getHardLimit(),0);
+		con.setConsumer(utilize);
+		con.setProvider(offer);
+		con.updateHardLimit();
+		Assert.assertEquals(utilize.getPerTickProcessingPower(), con.getHardLimit(),0);
+//		offer = new MaxMinProvider(1002);
+//		utilize = new MaxMinConsumer(1001);
+//		ResourceConsumption con1 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
+//				10, utilize, offer, new ConsumptionEventAssert());
+//		con1.updateHardLimit();
+//		Assert.assertEquals(utilize.getPerTickProcessingPower(), con.getHardLimit(),0);
+	}
+	
+	@Test()
+	public void negativeConsumption() {
+		con.setConsumer(utilize);
+		con.setProvider(offer);
+		try {
+			con = new ResourceConsumption(-1, 1, null, offer,
+					new ConsumptionEventAssert());
+			Assert.fail("Cannot create negative consumptions");
+		} catch (IllegalArgumentException ex) {
+		}
+		try {
+			con = new ResourceConsumption(1, -1, null, offer,
+					new ConsumptionEventAssert());
+			Assert.fail("Cannot create negative consumptions");
+		} catch (IllegalArgumentException ex) {
+		}
+		try {
+			con = new ResourceConsumption(-1, -1, null, offer,
+					new ConsumptionEventAssert());
+			Assert.fail("Cannot create negative consumptions");
+		} catch (IllegalArgumentException ex) {
+		}
+	}
+
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void memDirtyingRateException() {
+		con.setConsumer(utilize);
+		con.setProvider(offer);
+			con.setMemDirtyingRate(1.1);
+			Assert.fail("Should be between 0.0 and 1.0");
+	}
+	
+	@Test()
+	public void memDirtyingRate() {
+	con.setConsumer(utilize);
+	con.setProvider(offer);
+	con.setMemDirtyingRate(0.001);
+	Assert.assertEquals(0.001, con.getHardLimit(),0);
+	}
+	
+	@Test(timeout = 100)
+	public void processing() {
+		con.setConsumer(utilize);
+		con.setProvider(offer);
+		Assert.assertEquals(1.0, con.getToBeProcessed(),0);
+		Assert.assertEquals(0, con.getUnderProcessing(),0);
+	}
+	
+	@Test(timeout = 100)
+	public void memory() {
+		con.setConsumer(utilize);
+		con.setProvider(offer);
+		Assert.assertEquals(0, con.getMemDirtyingRate(),0);
+		Assert.assertEquals(0, con.getMemSize(),0);
+		Assert.assertEquals(0, con.getMemDirtyingRate(),0);
+	}
+	
+	@Test(timeout = 100)
+	public void compare() {
+		con.setConsumer(utilize);
+		con.setProvider(offer);
+		con.limitComparator.compare(con, con);
+	}
+	
+	@Test(timeout = 100)
+	public void cancel() {
+		
+		ConsumptionEventAssert cae = new ConsumptionEventAssert();
+		con = createAUnitConsumption(cae);
+		double before = preSuspendPhase();
+		Assert.assertEquals(con.isRegistered(),true);
+		con.registerConsumption();
+		con.cancel();
+		Assert.assertEquals(con.isRegistered(),false);
+		Timed.fire();
+		Timed.simulateUntilLastEvent();
+		con.cancel();
+		Assert.assertEquals(con.isRegistered(),false);
 	}
 }

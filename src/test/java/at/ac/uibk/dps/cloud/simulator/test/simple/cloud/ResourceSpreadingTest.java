@@ -67,7 +67,7 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 				offer.getTotalProcessed(), 0);
 	}
 
-	@Test(/*timeout = 1000*/)
+	@Test(timeout = 100)
 	public void registrationTest() {
 		ResourceConsumption con1 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
@@ -334,7 +334,6 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 		Assert.assertEquals(false,directEnergyMeter.isSubscribed());
 		this.offer.unsubscribePowerBehaviorChangeEvents(directEnergyMeter);
 		Assert.assertEquals(false,directEnergyMeter.isSubscribed());
-	
 	}
 	
 	@Test(expected=IllegalStateException.class)
@@ -342,22 +341,8 @@ public class ResourceSpreadingTest extends ConsumptionEventFoundation {
 		this.offer.setCurrentPowerBehavior(null);
 		Assert.assertEquals(null,this.offer.getCurrentPowerBehavior());
 	}
-	
-//	@Test()
-//	public void startMeterTest() {
-//		ResourceConsumption con1 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
-//				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
-//		ResourceConsumption con2 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
-//				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
-//		con1.registerConsumption();
-//		con2.registerConsumption();
-//		Timed.simulateUntil(Timed.getFireCount() + 2000);
-//		DirectEnergyMeter directEnergyMeter=new DirectEnergyMeter(this.offer);
-//		
-//		Assert.assertEquals(true,directEnergyMeter.startMeter(20, true));
-//	}
-	
-	@Test(/*timeout = 100*/)
+		
+	@Test(timeout = 100)
 	public void getTotalProcessedTest() {
 		ResourceConsumption con1 = new ResourceConsumption(ResourceConsumptionTest.processingTasklen,
 				ResourceConsumption.unlimitedProcessing, utilize, offer, new ConsumptionEventAssert());
