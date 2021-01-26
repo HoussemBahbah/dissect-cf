@@ -19,6 +19,7 @@ public class Exercice {
 	static final double maxTaskLen = 5;
 	static ArrayList<ResourceSpreader> providersList = new ArrayList<ResourceSpreader>();
 	static ArrayList<ResourceSpreader> consummersList = new ArrayList<ResourceSpreader>();
+	static ArrayList<ResourceConsumption> consumptionsList = new ArrayList<ResourceConsumption>();
 	
 	@Before
 	public void resetSim() throws Exception {
@@ -59,7 +60,6 @@ public class Exercice {
 		int randomProvider;
 		//runningCounter++;
 		//myTaskCount = 1 + SeedSyncer.centralRnd.nextInt(maxTaskCount - 1);
-		ArrayList<ResourceConsumption> consumptionsList = new ArrayList<ResourceConsumption>();
 				for (int j = 0; j < consumptions; j++) {
 					randomConsummer=SeedSyncer.centralRnd.nextInt(200) ;
 					randomProvider=SeedSyncer.centralRnd.nextInt(200);
@@ -70,7 +70,7 @@ public class Exercice {
 					currentCons.registerConsumption();
 					consumptionsList.add(currentCons);
 				}
-				System.out.println(consumptions+" consumptions created");
+				System.out.println(consumptions+" consumptions have been created");
 		}
 		
 	
@@ -79,9 +79,9 @@ public class Exercice {
 		int spreadersNumber=200;
 		getInfrastructure(spreadersNumber);
 		createRandomConsumptions(1000,providersList,consummersList);
-		System.out.println("Simulation started");
+		System.out.println("The Simulation started");
 		Timed.simulateUntilLastEvent();
-		System.out.println("Simulation finished");
+		System.out.println("The Simulation finished");
 	}
 		
 	}
