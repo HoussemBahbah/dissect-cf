@@ -32,56 +32,56 @@ public class Exercice {
 		}
 	
 	//new consummer
-public static ResourceSpreader getNewConsummer(final double randomNumber) {
-		MaxMinConsumer consummer= new MaxMinConsumer(randomNumber);
-		return consummer;
-		}
+	public static ResourceSpreader getNewConsummer(final double randomNumber) {
+			MaxMinConsumer consummer= new MaxMinConsumer(randomNumber);
+			return consummer;
+			}
 	
 	
 	//infrastructure creation
-public static void getInfrastructure(final int spreadersNumber) {
-
-	for (int i = 0; i < spreadersNumber; i++) {
-		double randomNumber=SeedSyncer.centralRnd.nextDouble();
-		ResourceSpreader currentProv = Exercice.getNewProvider(randomNumber);
-		providersList.add(currentProv);
+	public static void getInfrastructure(final int spreadersNumber) {
+	
+		for (int i = 0; i < spreadersNumber; i++) {
+			double randomNumber=SeedSyncer.centralRnd.nextDouble();
+			ResourceSpreader currentProv = Exercice.getNewProvider(randomNumber);
+			providersList.add(currentProv);
+		}
+		for (int i = 0; i < spreadersNumber; i++) {
+			double randomNumber=SeedSyncer.centralRnd.nextDouble();
+			ResourceSpreader currentConsummer = Exercice.getNewConsummer(randomNumber);
+			consummersList.add(currentConsummer);
+		}	
 	}
-	for (int i = 0; i < spreadersNumber; i++) {
-		double randomNumber=SeedSyncer.centralRnd.nextDouble();
-		ResourceSpreader currentConsummer = Exercice.getNewConsummer(randomNumber);
-		consummersList.add(currentConsummer);
-	}	
-}
 	
 //randomConsumptions
-public void createRandomConsumptions(int consumptions,ArrayList<ResourceSpreader> providersList,ArrayList<ResourceSpreader> consummersList) {
-	int randomConsummer;
-	int randomProvider;
-	//runningCounter++;
-	//myTaskCount = 1 + SeedSyncer.centralRnd.nextInt(maxTaskCount - 1);
-	ArrayList<ResourceConsumption> consumptionsList = new ArrayList<ResourceConsumption>();
-			for (int j = 0; j < consumptions; j++) {
-				randomConsummer=SeedSyncer.centralRnd.nextInt(200) ;
-				randomProvider=SeedSyncer.centralRnd.nextInt(200);
-				ResourceConsumption currentCons = new ResourceConsumption(
-						SeedSyncer.centralRnd.nextDouble() * maxTaskLen,
-						ResourceConsumption.unlimitedProcessing, consummersList.get(randomConsummer) , providersList.get(randomProvider),
-						new ConsumptionEventAssert());
-				currentCons.registerConsumption();
-				consumptionsList.add(currentCons);
-			}
-			System.out.println(consumptions+" consumptions created");
-	}
+	public void createRandomConsumptions(int consumptions,ArrayList<ResourceSpreader> providersList,ArrayList<ResourceSpreader> consummersList) {
+		int randomConsummer;
+		int randomProvider;
+		//runningCounter++;
+		//myTaskCount = 1 + SeedSyncer.centralRnd.nextInt(maxTaskCount - 1);
+		ArrayList<ResourceConsumption> consumptionsList = new ArrayList<ResourceConsumption>();
+				for (int j = 0; j < consumptions; j++) {
+					randomConsummer=SeedSyncer.centralRnd.nextInt(200) ;
+					randomProvider=SeedSyncer.centralRnd.nextInt(200);
+					ResourceConsumption currentCons = new ResourceConsumption(
+							SeedSyncer.centralRnd.nextDouble() * maxTaskLen,
+							ResourceConsumption.unlimitedProcessing, consummersList.get(randomConsummer) , providersList.get(randomProvider),
+							new ConsumptionEventAssert());
+					currentCons.registerConsumption();
+					consumptionsList.add(currentCons);
+				}
+				System.out.println(consumptions+" consumptions created");
+		}
 		
 	
-@Test()
-public void randomConsumptions() {
-	int spreadersNumber=200;
-	getInfrastructure(spreadersNumber);
-	createRandomConsumptions(1000,providersList,consummersList);
-	System.out.println("Simulation started");
-	Timed.simulateUntilLastEvent();
-	System.out.println("Simulation finished");
-}
-	
-}
+	@Test()
+	public void randomConsumptions() {
+		int spreadersNumber=200;
+		getInfrastructure(spreadersNumber);
+		createRandomConsumptions(1000,providersList,consummersList);
+		System.out.println("Simulation started");
+		Timed.simulateUntilLastEvent();
+		System.out.println("Simulation finished");
+	}
+		
+	}
