@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -425,7 +426,7 @@ public abstract class ResourceSpreader {
 		 * 
 		 */
 		@Override
-		public void tick(final long fires) {
+		public synchronized void tick(final long fires) {
 			// Phase I. Identifying new influence group members, sending out
 			// consumption notification events
 			boolean didRemovals = false;
@@ -602,7 +603,7 @@ public abstract class ResourceSpreader {
 		 * this process also reduces the frequency with which the
 		 * ResourceSpreader.doProcessing is called.
 		 */
-		private void updateMyFreqNow() {
+		private synchronized void updateMyFreqNow() {
 			final long newFreq = myDepGroup[0].singleGroupwiseFreqUpdater();
 			regularFreqMode = newFreq != 0;
 			updateFrequency(newFreq);
@@ -718,7 +719,7 @@ public abstract class ResourceSpreader {
 	 *         consumer.
 	 *         </ul>
 	 */
-	static boolean registerConsumption(final ResourceConsumption con) {
+	static synchronized boolean  registerConsumption(final ResourceConsumption con) {
 		final ResourceSpreader provider = con.getProvider();
 		final ResourceSpreader consumer = con.getConsumer();
 		if (con.isRegistered() || !(provider.isAcceptableConsumption(con) && consumer.isAcceptableConsumption(con))) {
@@ -803,7 +804,11 @@ public abstract class ResourceSpreader {
 	 * @param currentFireCount
 	 *            the time at which this processing task must take place.
 	 */
-	private void doProcessing(final long currentFireCount) {
+	private synchronized void doProcessing(final long currentFireCount) {
+		if (mySyncer==null) {
+			System.out.println("null syncer : "+this.toString());
+		}
+		System.out.println("not null syncer : "+this.toString());
 		if (currentFireCount == lastNotifTime && mySyncer.isRegularFreqMode()) {
 			return;
 		}

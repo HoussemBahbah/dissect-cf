@@ -5,6 +5,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import at.ac.uibk.dps.cloud.simulator.test.ConsumptionEventAssert;
+import at.ac.uibk.dps.cloud.simulator.test.ConsumptionEventFoundation;
 import hu.mta.sztaki.lpds.cloud.simulator.Timed;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinConsumer;
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.MaxMinProvider;
@@ -12,7 +13,7 @@ import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceConsumption
 import hu.mta.sztaki.lpds.cloud.simulator.iaas.resourcemodel.ResourceSpreader;
 import hu.mta.sztaki.lpds.cloud.simulator.util.SeedSyncer;
 
-public class Exercice {
+public class Exercice extends ConsumptionEventFoundation{
 	public int runningCounter = 0;
 	public int destroyCounter = 0;
 	//static final int maxTaskCount = 5;
@@ -55,14 +56,14 @@ public class Exercice {
 	}
 	
 //randomConsumptions
-	public void createRandomConsumptions(int consumptions,ArrayList<ResourceSpreader> providersList,ArrayList<ResourceSpreader> consummersList) {
+	public void createRandomConsumptions(int consumptions,int spreadersNumber,ArrayList<ResourceSpreader> providersList,ArrayList<ResourceSpreader> consummersList) {
 		int randomConsummer;
 		int randomProvider;
 		//runningCounter++;
 		//myTaskCount = 1 + SeedSyncer.centralRnd.nextInt(maxTaskCount - 1);
 				for (int j = 0; j < consumptions; j++) {
-					randomConsummer=SeedSyncer.centralRnd.nextInt(200) ;
-					randomProvider=SeedSyncer.centralRnd.nextInt(200);
+					randomConsummer=SeedSyncer.centralRnd.nextInt(spreadersNumber) ;
+					randomProvider=SeedSyncer.centralRnd.nextInt(spreadersNumber);
 					ResourceConsumption currentCons = new ResourceConsumption(
 							SeedSyncer.centralRnd.nextDouble() * maxTaskLen,
 							ResourceConsumption.unlimitedProcessing, consummersList.get(randomConsummer) , providersList.get(randomProvider),
@@ -70,15 +71,17 @@ public class Exercice {
 					currentCons.registerConsumption();
 					consumptionsList.add(currentCons);
 				}
+				System.out.println(spreadersNumber+" Providers and "+spreadersNumber+ " Consummers have been createrd");
 				System.out.println(consumptions+" consumptions have been created");
 		}
 		
 	
 	@Test()
 	public void randomConsumptions() {
-		int spreadersNumber=200;
+		int spreadersNumber=20;
+		int consumptions=30;
 		getInfrastructure(spreadersNumber);
-		createRandomConsumptions(1000,providersList,consummersList);
+		createRandomConsumptions(consumptions,spreadersNumber,providersList,consummersList);
 		System.out.println("The Simulation started");
 		Timed.simulateUntilLastEvent();
 		System.out.println("The Simulation finished");
