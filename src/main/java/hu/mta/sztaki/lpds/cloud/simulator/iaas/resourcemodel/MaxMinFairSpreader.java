@@ -160,7 +160,7 @@ public abstract class MaxMinFairSpreader extends ResourceSpreader {
 	 * simulator.
 	 */
 	@Override
-	protected long singleGroupwiseFreqUpdater() {
+	protected /*synchronized*/ long singleGroupwiseFreqUpdater() {
 		// Phase 1: preparation
 		final ResourceSpreader.FreqSyncer syncer = getSyncer();
 		final ResourceSpreader[] depgroup = syncer.getDepGroup();

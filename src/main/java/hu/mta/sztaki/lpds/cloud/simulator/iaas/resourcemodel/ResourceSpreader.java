@@ -399,7 +399,7 @@ public abstract class ResourceSpreader {
 		 * @param currentTime
 		 *            the time instance for which the processing should be done
 		 */
-		protected final void outOfOrderProcessing(final long currentTime) {
+		protected /*synchronized*/ final void outOfOrderProcessing(final long currentTime) {
 			for (int i = 0; i < depgrouplen; i++) {
 				myDepGroup[i].doProcessing(currentTime);
 			}
@@ -603,7 +603,7 @@ public abstract class ResourceSpreader {
 		 * this process also reduces the frequency with which the
 		 * ResourceSpreader.doProcessing is called.
 		 */
-		private synchronized void updateMyFreqNow() {
+		private void updateMyFreqNow() {
 			final long newFreq = myDepGroup[0].singleGroupwiseFreqUpdater();
 			regularFreqMode = newFreq != 0;
 			updateFrequency(newFreq);
@@ -719,7 +719,7 @@ public abstract class ResourceSpreader {
 	 *         consumer.
 	 *         </ul>
 	 */
-	static synchronized boolean  registerConsumption(final ResourceConsumption con) {
+	static boolean  registerConsumption(final ResourceConsumption con) {
 		final ResourceSpreader provider = con.getProvider();
 		final ResourceSpreader consumer = con.getConsumer();
 		if (con.isRegistered() || !(provider.isAcceptableConsumption(con) && consumer.isAcceptableConsumption(con))) {
@@ -804,7 +804,7 @@ public abstract class ResourceSpreader {
 	 * @param currentFireCount
 	 *            the time at which this processing task must take place.
 	 */
-	private synchronized void doProcessing(final long currentFireCount) {
+	private /*synchronized*/ void doProcessing(final long currentFireCount) {
 		if (mySyncer==null) {
 			System.out.println("null syncer : "+this.toString());
 		}
@@ -818,6 +818,9 @@ public abstract class ResourceSpreader {
 		final long ticksPassed = currentFireCount - lastNotifTime;
 		for (int i = 0; i < underProcessingLen; i++) {
 			final ResourceConsumption con = underProcessing.get(i);
+			//System.out.println("	Provider : "+con.getProvider());
+			//System.out.println(" 	Consummer "+con.getConsumer().toString());
+			
 			final double processed = processSingleConsumption(con, ticksPassed);
 			if (processed < 0) {
 				totalProcessed -= processed;

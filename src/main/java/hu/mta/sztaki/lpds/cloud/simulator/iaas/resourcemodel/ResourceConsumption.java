@@ -589,7 +589,7 @@ public class ResourceConsumption {
 	 * @throws IllegalStateException
 	 *             if the real limit would become 0
 	 */
-	double updateRealLimit(final boolean updateCD) {
+	/*synchronized*/ double updateRealLimit(final boolean updateCD) {
 		final double rlTrial = providerLimit < consumerLimit ? providerLimit : consumerLimit;
 		if (rlTrial == 0) {
 			throw new IllegalStateException(

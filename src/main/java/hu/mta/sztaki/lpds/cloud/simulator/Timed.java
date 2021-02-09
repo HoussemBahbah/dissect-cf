@@ -401,7 +401,7 @@ public abstract class Timed implements Comparable<Timed> {
 	 * are no events due at the particular time instance then this function just
 	 * advances the time by one tick.
 	 */
-	public synchronized static final void fire() {
+	public /*synchronized*/ static final void fire() {
 		while (!timedlist.isEmpty() && timedlist.peek().nextEvent == fireCounter) {
 			timedlist.drainTo(timedListSim,(int) timedlist.parallelStream().filter(e-> e.nextEvent == fireCounter).count());
 			
@@ -540,7 +540,7 @@ public abstract class Timed implements Comparable<Timed> {
 	 * loops if at least one of the timed objects in the system does not call its
 	 * unsubscribe() function.
 	 */
-	public synchronized static final void simulateUntilLastEvent() {
+	public static final void simulateUntilLastEvent() {
 		long pnf = -1;
 		long cnf = 0;
 		initThreads();
