@@ -29,8 +29,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -136,8 +134,8 @@ public abstract class ResourceSpreader {
 	 * group's freq syncer object
 	 */
 	private boolean stillInDepGroup;
+	static Object lock = new Object();
 
-	static ReentrantLock lock = new ReentrantLock();
 
 	/**
 	 * This class is the core part of the unified resource consumption model of
@@ -404,7 +402,9 @@ public abstract class ResourceSpreader {
 		 */
 		protected final void outOfOrderProcessing(final long currentTime) {
 			for (int i = 0; i < depgrouplen; i++) {
+				synchronized (lock) {
 				myDepGroup[i].doProcessing(currentTime);
+				}
 			}
 		}
 
@@ -435,7 +435,9 @@ public abstract class ResourceSpreader {
 			boolean didRemovals = false;
 			boolean didExtension;
 			do {
-				outOfOrderProcessing(fires);
+				synchronized (lock) {
+					outOfOrderProcessing(fires);
+				}
 				depGroupExtension.clear();
 				nudged = false;
 				didExtension = false;
@@ -597,11 +599,8 @@ public abstract class ResourceSpreader {
 		}
 
 		private void setSyncer(ResourceSpreader cp) {
-			lock.lock();
-			try {
-			cp.mySyncer = null;
-			} finally {
-				lock.unlock();
+			synchronized (lock) {
+				cp.mySyncer = null;
 			}
 		}
 
@@ -817,45 +816,41 @@ public abstract class ResourceSpreader {
 	 *            the time at which this processing task must take place.
 	 */
 	private void doProcessing(final long currentFireCount) {
-		lock.lock();
-		try {
-		if (mySyncer==null) {
-			System.out.println("null syncer : "+this.toString());
-		}
-		System.out.println("not null syncer : "+this.toString());
-
-		if (currentFireCount == lastNotifTime && mySyncer.isRegularFreqMode()) {
-			return;
-		}
-		ResourceConsumption[] toRemove = null;
-		boolean firsthit = true;
-		int remIdx = 0;
-		final long ticksPassed = currentFireCount - lastNotifTime;
-		for (int i = 0; i < underProcessingLen; i++) {
-			final ResourceConsumption con = underProcessing.get(i);
-			//System.out.println("	Provider : "+con.getProvider());
-			//System.out.println(" 	Consummer "+con.getConsumer().toString());
-			
-			final double processed = processSingleConsumption(con, ticksPassed);
-			if (processed < 0) {
-				totalProcessed -= processed;
-				if (firsthit) {
-					toRemove = new ResourceConsumption[underProcessingLen - i];
-					firsthit = false;
-				}
-				toRemove[remIdx++] = con;
-			} else {
-				totalProcessed += processed;
+		synchronized (lock) {
+			if (mySyncer == null) {
+				System.out.println("null syncer : " + this.toString());
 			}
+			System.out.println("not null syncer : " + this.toString());
+			if (currentFireCount == lastNotifTime && mySyncer.isRegularFreqMode()) {
+				return;
+			}
+			ResourceConsumption[] toRemove = null;
+			boolean firsthit = true;
+			int remIdx = 0;
+			final long ticksPassed = currentFireCount - lastNotifTime;
+			for (int i = 0; i < underProcessingLen; i++) {
+				final ResourceConsumption con = underProcessing.get(i);
+				//System.out.println("	Provider : "+con.getProvider());
+				//System.out.println(" 	Consummer "+con.getConsumer().toString());
+
+				final double processed = processSingleConsumption(con, ticksPassed);
+				if (processed < 0) {
+					totalProcessed -= processed;
+					if (firsthit) {
+						toRemove = new ResourceConsumption[underProcessingLen - i];
+						firsthit = false;
+					}
+					toRemove[remIdx++] = con;
+				} else {
+					totalProcessed += processed;
+				}
+			}
+			if (remIdx > 0) {
+				removeTheseConsumptions(toRemove, remIdx);
+			}
+			lastNotifTime = currentFireCount;
 		}
-		if (remIdx > 0) {
-			removeTheseConsumptions(toRemove, remIdx);
-		}
-		lastNotifTime = currentFireCount;
-		} finally {
-			lock.unlock();
-		}
-		}
+	}
 
 	/**
 	 * This function is expected to realign the underProcessing and
