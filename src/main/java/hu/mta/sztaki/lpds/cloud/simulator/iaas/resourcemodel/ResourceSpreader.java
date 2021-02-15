@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -135,6 +136,8 @@ public abstract class ResourceSpreader {
 	 * group's freq syncer object
 	 */
 	private boolean stillInDepGroup;
+
+	static ReentrantLock lock = new ReentrantLock();
 
 	/**
 	 * This class is the core part of the unified resource consumption model of
@@ -399,7 +402,7 @@ public abstract class ResourceSpreader {
 		 * @param currentTime
 		 *            the time instance for which the processing should be done
 		 */
-		protected /*synchronized*/ final void outOfOrderProcessing(final long currentTime) {
+		protected final void outOfOrderProcessing(final long currentTime) {
 			for (int i = 0; i < depgrouplen; i++) {
 				myDepGroup[i].doProcessing(currentTime);
 			}
@@ -426,7 +429,7 @@ public abstract class ResourceSpreader {
 		 * 
 		 */
 		@Override
-		public synchronized void tick(final long fires) {
+		public void tick(final long fires) {
 			// Phase I. Identifying new influence group members, sending out
 			// consumption notification events
 			boolean didRemovals = false;
@@ -489,7 +492,7 @@ public abstract class ResourceSpreader {
 									// Make sure, that if we encounter this cp
 									// next time we will not try to add all its
 									// dep group
-									cp.mySyncer = null;
+									setSyncer(cp);
 								}
 							}
 						}
@@ -520,7 +523,7 @@ public abstract class ResourceSpreader {
 						if (rs.stillInDepGroup) {
 							break;
 						}
-						rs.mySyncer = null;
+						setSyncer(rs);
 					}
 					if (classifiableindex < notClassifiedLen) {
 						notClassifiedLen -= classifiableindex;
@@ -590,6 +593,15 @@ public abstract class ResourceSpreader {
 			} else {
 				// No separation was needed we just update our freq
 				updateMyFreqNow();
+			}
+		}
+
+		private void setSyncer(ResourceSpreader cp) {
+			lock.lock();
+			try {
+			cp.mySyncer = null;
+			} finally {
+				lock.unlock();
 			}
 		}
 
@@ -804,11 +816,14 @@ public abstract class ResourceSpreader {
 	 * @param currentFireCount
 	 *            the time at which this processing task must take place.
 	 */
-	private /*synchronized*/ void doProcessing(final long currentFireCount) {
+	private void doProcessing(final long currentFireCount) {
+		lock.lock();
+		try {
 		if (mySyncer==null) {
 			System.out.println("null syncer : "+this.toString());
 		}
 		System.out.println("not null syncer : "+this.toString());
+
 		if (currentFireCount == lastNotifTime && mySyncer.isRegularFreqMode()) {
 			return;
 		}
@@ -837,7 +852,10 @@ public abstract class ResourceSpreader {
 			removeTheseConsumptions(toRemove, remIdx);
 		}
 		lastNotifTime = currentFireCount;
-	}
+		} finally {
+			lock.unlock();
+		}
+		}
 
 	/**
 	 * This function is expected to realign the underProcessing and
