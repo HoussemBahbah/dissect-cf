@@ -402,9 +402,7 @@ public abstract class ResourceSpreader {
 		 */
 		protected final void outOfOrderProcessing(final long currentTime) {
 			for (int i = 0; i < depgrouplen; i++) {
-				synchronized (lock) {
 				myDepGroup[i].doProcessing(currentTime);
-				}
 			}
 		}
 
@@ -814,6 +812,7 @@ public abstract class ResourceSpreader {
 	 *            the time at which this processing task must take place.
 	 */
 	private void doProcessing(final long currentFireCount) {
+		synchronized (lock) {
 			if (mySyncer == null) {
 				System.out.println("null syncer : " + this.toString());
 			}
@@ -846,6 +845,7 @@ public abstract class ResourceSpreader {
 				removeTheseConsumptions(toRemove, remIdx);
 			}
 			lastNotifTime = currentFireCount;
+		}
 	}
 
 	/**
