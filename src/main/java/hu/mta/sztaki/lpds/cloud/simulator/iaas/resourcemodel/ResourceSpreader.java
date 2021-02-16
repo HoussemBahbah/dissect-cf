@@ -926,6 +926,7 @@ public abstract class ResourceSpreader {
 	 *         will report the amount of instructions executed so far by the PM.
 	 */
 	public double getTotalProcessed() {
+		synchronized(lock) {
 		if (mySyncer != null) {
 			final long currTime = Timed.getFireCount();
 			if (isConsumer()) {
@@ -940,6 +941,7 @@ public abstract class ResourceSpreader {
 			doProcessing(currTime);
 		}
 		return totalProcessed;
+		}
 	}
 
 	/**
