@@ -435,9 +435,7 @@ public abstract class ResourceSpreader {
 			boolean didRemovals = false;
 			boolean didExtension;
 			do {
-				synchronized (lock) {
 					outOfOrderProcessing(fires);
-				}
 				depGroupExtension.clear();
 				nudged = false;
 				didExtension = false;
@@ -816,7 +814,6 @@ public abstract class ResourceSpreader {
 	 *            the time at which this processing task must take place.
 	 */
 	private void doProcessing(final long currentFireCount) {
-		synchronized (lock) {
 			if (mySyncer == null) {
 				System.out.println("null syncer : " + this.toString());
 			}
@@ -849,7 +846,6 @@ public abstract class ResourceSpreader {
 				removeTheseConsumptions(toRemove, remIdx);
 			}
 			lastNotifTime = currentFireCount;
-		}
 	}
 
 	/**
