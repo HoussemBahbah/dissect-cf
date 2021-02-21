@@ -401,6 +401,7 @@ public abstract class ResourceSpreader {
 		 *            the time instance for which the processing should be done
 		 */
 		protected final void outOfOrderProcessing(final long currentTime) {
+			System.out.println("****OUT OF ORDER PROCESSING "+Thread.currentThread().getName());
 			for (int i = 0; i < depgrouplen; i++) {
 				myDepGroup[i].doProcessing(currentTime);
 			}
@@ -430,6 +431,8 @@ public abstract class ResourceSpreader {
 		public void tick(final long fires) {
 			// Phase I. Identifying new influence group members, sending out
 			// consumption notification events
+			synchronized(lock){
+			System.out.println("***TICK "+ Thread.currentThread().getName());
 			boolean didRemovals = false;
 			boolean didExtension;
 			do {
@@ -593,11 +596,12 @@ public abstract class ResourceSpreader {
 				updateMyFreqNow();
 			}
 		}
+	}
 
 		private void setSyncer(ResourceSpreader cp) {
-			synchronized (lock) {
+			//synchronized (lock) {
 				cp.mySyncer = null;
-			}
+			//}
 		}
 
 		/**
@@ -813,10 +817,13 @@ public abstract class ResourceSpreader {
 	 */
 	private void doProcessing(final long currentFireCount) {
 		synchronized (lock) {
+			System.out.println(Thread.currentThread().getName()+" ENTERING PROTECTED SECTION");
 			if (mySyncer == null) {
-				System.out.println("null syncer : " + this.toString());
+				//System.out.println("null syncer : " + this.toString());
+				System.out.println("*****NULL DOPROCESSING"+Thread.currentThread().getName());
 			}
-			System.out.println("not null syncer : " + this.toString());
+			//System.out.println("not null syncer : " + this.toString());
+			System.out.println("*****DOPROCESSING "+Thread.currentThread().getName());
 			if (currentFireCount == lastNotifTime && mySyncer.isRegularFreqMode()) {
 				return;
 			}
@@ -845,6 +852,7 @@ public abstract class ResourceSpreader {
 				removeTheseConsumptions(toRemove, remIdx);
 			}
 			lastNotifTime = currentFireCount;
+			System.out.println(Thread.currentThread().getName()+" LEAVING PROTECTED SECTION ******");
 		}
 	}
 
@@ -926,21 +934,21 @@ public abstract class ResourceSpreader {
 	 *         will report the amount of instructions executed so far by the PM.
 	 */
 	public double getTotalProcessed() {
-		synchronized(lock) {
-		if (mySyncer != null) {
-			final long currTime = Timed.getFireCount();
-			if (isConsumer()) {
-				// We first have to make sure the providers provide the
-				// stuff that this consumer might need
-				final int len = mySyncer.getFirstConsumerId();
-				final ResourceSpreader[] dg = mySyncer.myDepGroup;
-				for (int i = 0; i < len; i++) {
-					dg[i].doProcessing(currTime);
+		synchronized (lock) {
+			if (mySyncer != null) {
+				final long currTime = Timed.getFireCount();
+				if (isConsumer()) {
+					// We first have to make sure the providers provide the
+					// stuff that this consumer might need
+					final int len = mySyncer.getFirstConsumerId();
+					final ResourceSpreader[] dg = mySyncer.myDepGroup;
+					for (int i = 0; i < len; i++) {
+						dg[i].doProcessing(currTime);
+					}
 				}
+				doProcessing(currTime);
 			}
-			doProcessing(currTime);
-		}
-		return totalProcessed;
+			return totalProcessed;
 		}
 	}
 

@@ -78,13 +78,13 @@ public class Exercice extends ConsumptionEventFoundation{
 	
 	@Test()
 	public void randomConsumptions() {
-		int spreadersNumber=20;
-		int consumptions=30;
+		int spreadersNumber=3;
+		int consumptions=6;
 		getInfrastructure(spreadersNumber);
 		createRandomConsumptions(consumptions,spreadersNumber,providersList,consummersList);
-		System.out.println("The Simulation started");
+		System.out.println("**************The Simulation started**************");
 		Timed.simulateUntilLastEvent();
-		System.out.println("The Simulation finished");
+		System.out.println("**************The Simulation finished**************");
 	}
 		
 	}

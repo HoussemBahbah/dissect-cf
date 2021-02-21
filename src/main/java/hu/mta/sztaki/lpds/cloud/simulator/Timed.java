@@ -192,6 +192,7 @@ public abstract class Timed implements Comparable<Timed> {
 						}
 					}
 					// The actual work.
+					System.out.println("TIMED.RUN "+Thread.currentThread().getName());
 					process(t);
 				}
 			}
@@ -401,7 +402,7 @@ public abstract class Timed implements Comparable<Timed> {
 	 * are no events due at the particular time instance then this function just
 	 * advances the time by one tick.
 	 */
-	public /*synchronized*/ static final void fire() {
+	public static final void fire() {
 		while (!timedlist.isEmpty() && timedlist.peek().nextEvent == fireCounter) {
 			timedlist.drainTo(timedListSim,(int) timedlist.parallelStream().filter(e-> e.nextEvent == fireCounter).count());
 			
@@ -410,6 +411,7 @@ public abstract class Timed implements Comparable<Timed> {
 				Timed t = null;
 				t = timedListSim.poll();
 				process(t);
+				System.out.println("*IN TIMED.FIRE "+Thread.currentThread().getName());
 				}
 			}else {
 				try {
@@ -426,8 +428,9 @@ public abstract class Timed implements Comparable<Timed> {
 	/**
 	 * This Method process similar events and update them based on frequency
 	 */
-	protected static final synchronized void process(Timed t) {
+	protected static final void process(Timed t) {
 		t.underProcessing = true;
+		System.out.println("TIMED.PROCESS "+Thread.currentThread().getName());
 		t.tick(fireCounter);
 		if(t.activeSubscription) {
 			t.updateEvent(t.frequency);
