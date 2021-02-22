@@ -56,6 +56,7 @@ import hu.mta.sztaki.lpds.cloud.simulator.util.ArrayHandler;
  *         Distributed Systems, MTA SZTAKI (c) 2012"
  * 
  */
+
 public abstract class ResourceSpreader {
 
 	// These final variables define the base behavior of the class:
@@ -134,7 +135,7 @@ public abstract class ResourceSpreader {
 	 * group's freq syncer object
 	 */
 	private boolean stillInDepGroup;
-	static Object lock = new Object();
+	//static Object LockObj.INSTANCE = new Object();
 
 
 	/**
@@ -431,7 +432,7 @@ public abstract class ResourceSpreader {
 		public void tick(final long fires) {
 			// Phase I. Identifying new influence group members, sending out
 			// consumption notification events
-			synchronized(lock){
+			synchronized(LockObj.INSTANCE){
 			System.out.println("***TICK "+ Thread.currentThread().getName());
 			boolean didRemovals = false;
 			boolean didExtension;
@@ -599,7 +600,7 @@ public abstract class ResourceSpreader {
 	}
 
 		private void setSyncer(ResourceSpreader cp) {
-			//synchronized (lock) {
+			//synchronized (LockObj.INSTANCE) {
 				cp.mySyncer = null;
 			//}
 		}
@@ -816,8 +817,8 @@ public abstract class ResourceSpreader {
 	 *            the time at which this processing task must take place.
 	 */
 	private void doProcessing(final long currentFireCount) {
-		synchronized (lock) {
-			System.out.println(Thread.currentThread().getName()+" ENTERING PROTECTED SECTION");
+		synchronized (LockObj.INSTANCE) {
+			System.out.println(Thread.currentThread().getName()+" ENTERING DOPROCESSING PROTECTED SECTION");
 			if (mySyncer == null) {
 				//System.out.println("null syncer : " + this.toString());
 				System.out.println("*****NULL DOPROCESSING"+Thread.currentThread().getName());
@@ -852,7 +853,7 @@ public abstract class ResourceSpreader {
 				removeTheseConsumptions(toRemove, remIdx);
 			}
 			lastNotifTime = currentFireCount;
-			System.out.println(Thread.currentThread().getName()+" LEAVING PROTECTED SECTION ******");
+			System.out.println(Thread.currentThread().getName()+" LEAVING DOPROCESSING PROTECTED SECTION ******");
 		}
 	}
 
@@ -934,7 +935,7 @@ public abstract class ResourceSpreader {
 	 *         will report the amount of instructions executed so far by the PM.
 	 */
 	public double getTotalProcessed() {
-		synchronized (lock) {
+		synchronized (LockObj.INSTANCE) {
 			if (mySyncer != null) {
 				final long currTime = Timed.getFireCount();
 				if (isConsumer()) {
