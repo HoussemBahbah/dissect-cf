@@ -135,7 +135,7 @@ public abstract class ResourceSpreader {
 	 * group's freq syncer object
 	 */
 	private boolean stillInDepGroup;
-	//static Object LockObj.INSTANCE = new Object();
+	static Object lock = new Object();
 
 
 	/**
@@ -402,7 +402,7 @@ public abstract class ResourceSpreader {
 		 *            the time instance for which the processing should be done
 		 */
 		protected final void outOfOrderProcessing(final long currentTime) {
-			System.out.println("****OUT OF ORDER PROCESSING "+Thread.currentThread().getName());
+			System.out.println("****OUT OF ORDER PROCESSING "+Thread.currentThread().getName()+" time: "+System.currentTimeMillis());
 			for (int i = 0; i < depgrouplen; i++) {
 				myDepGroup[i].doProcessing(currentTime);
 			}
@@ -432,8 +432,8 @@ public abstract class ResourceSpreader {
 		public void tick(final long fires) {
 			// Phase I. Identifying new influence group members, sending out
 			// consumption notification events
-			synchronized(LockObj.INSTANCE){
-			System.out.println("***TICK "+ Thread.currentThread().getName());
+			synchronized(lock){
+			System.out.println("***TICK "+ Thread.currentThread().getName()+" time: "+System.currentTimeMillis() );
 			boolean didRemovals = false;
 			boolean didExtension;
 			do {
@@ -817,14 +817,14 @@ public abstract class ResourceSpreader {
 	 *            the time at which this processing task must take place.
 	 */
 	private void doProcessing(final long currentFireCount) {
-		synchronized (LockObj.INSTANCE) {
-			System.out.println(Thread.currentThread().getName()+" ENTERING DOPROCESSING PROTECTED SECTION");
+		synchronized (lock) {
+			System.out.println(Thread.currentThread().getName()+" ENTERING DOPROCESSING PROTECTED SECTION"+" time: "+System.currentTimeMillis());
 			if (mySyncer == null) {
 				//System.out.println("null syncer : " + this.toString());
-				System.out.println("*****NULL DOPROCESSING"+Thread.currentThread().getName());
+				System.out.println("*****NULL DOPROCESSING"+Thread.currentThread().getName()+" time: "+System.currentTimeMillis());
 			}
 			//System.out.println("not null syncer : " + this.toString());
-			System.out.println("*****DOPROCESSING "+Thread.currentThread().getName());
+			System.out.println("*****DOPROCESSING "+Thread.currentThread().getName()+" time: "+System.currentTimeMillis());
 			if (currentFireCount == lastNotifTime && mySyncer.isRegularFreqMode()) {
 				return;
 			}
@@ -853,7 +853,7 @@ public abstract class ResourceSpreader {
 				removeTheseConsumptions(toRemove, remIdx);
 			}
 			lastNotifTime = currentFireCount;
-			System.out.println(Thread.currentThread().getName()+" LEAVING DOPROCESSING PROTECTED SECTION ******");
+			System.out.println(Thread.currentThread().getName()+" LEAVING DOPROCESSING PROTECTED SECTION ******"+" time: "+System.currentTimeMillis());
 		}
 	}
 
@@ -935,7 +935,7 @@ public abstract class ResourceSpreader {
 	 *         will report the amount of instructions executed so far by the PM.
 	 */
 	public double getTotalProcessed() {
-		synchronized (LockObj.INSTANCE) {
+		synchronized (lock) {
 			if (mySyncer != null) {
 				final long currTime = Timed.getFireCount();
 				if (isConsumer()) {
