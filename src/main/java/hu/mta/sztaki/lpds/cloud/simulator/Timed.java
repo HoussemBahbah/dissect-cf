@@ -430,7 +430,8 @@ public abstract class Timed implements Comparable<Timed> {
 	 */
 	protected static final void process(Timed t) {
 		t.underProcessing = true;
-		System.out.println("TIMED.PROCESS "+Thread.currentThread().getName()+" time: "+System.currentTimeMillis());
+		System.out.println("TIMED.PROCESS "+Thread.currentThread().getName()+" time: "+System.currentTimeMillis()
+				+"\n"+"TICK IS IN SYNCER: "+t.toString() );
 		t.tick(fireCounter);
 		if(t.activeSubscription) {
 			t.updateEvent(t.frequency);
