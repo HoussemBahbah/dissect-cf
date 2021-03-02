@@ -192,7 +192,7 @@ public abstract class Timed implements Comparable<Timed> {
 						}
 					}
 					// The actual work.
-					System.out.println("TIMED.RUN "+Thread.currentThread().getName()+" time: "+System.currentTimeMillis());
+					//System.out.println("TIMED.RUN "+Thread.currentThread().getName()+" time: "+System.currentTimeMillis());
 					process(t);
 				}
 			}
@@ -411,7 +411,7 @@ public abstract class Timed implements Comparable<Timed> {
 				Timed t = null;
 				t = timedListSim.poll();
 				process(t);
-				System.out.println("*IN TIMED.FIRE "+Thread.currentThread().getName()+" time: "+System.currentTimeMillis());
+				//System.out.println("*IN TIMED.FIRE "+Thread.currentThread().getName()+" time: "+System.currentTimeMillis());
 				}
 			}else {
 				try {

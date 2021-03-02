@@ -402,7 +402,7 @@ public abstract class ResourceSpreader {
 		 *            the time instance for which the processing should be done
 		 */
 		protected final void outOfOrderProcessing(final long currentTime) {
-			System.out.println("****OUT OF ORDER PROCESSING "+Thread.currentThread().getName()+" time: "+System.currentTimeMillis());
+			//System.out.println("****OUT OF ORDER PROCESSING "+Thread.currentThread().getName()+" time: "+System.currentTimeMillis());
 			for (int i = 0; i < depgrouplen; i++) {
 				myDepGroup[i].doProcessing(currentTime);
 			}
@@ -430,10 +430,11 @@ public abstract class ResourceSpreader {
 		 */
 		@Override
 		public void tick(final long fires) {
+			synchronized(lock){
+				System.out.println("***TICK "+ Thread.currentThread().getName()+" time: "+System.currentTimeMillis() );
 			// Phase I. Identifying new influence group members, sending out
 			// consumption notification events
-			synchronized(lock){
-			System.out.println("***TICK "+ Thread.currentThread().getName()+" time: "+System.currentTimeMillis() );
+				System.out.println("Phase I. Identifying new influence group members, sending out consumption notification events "+ Thread.currentThread().getName());
 			boolean didRemovals = false;
 			boolean didExtension;
 			do {
@@ -444,6 +445,7 @@ public abstract class ResourceSpreader {
 				for (int rsi = 0; rsi < depgrouplen; rsi++) {
 					final ResourceSpreader rs = myDepGroup[rsi];
 					// managing removals
+					System.out.println("managing removals "+ Thread.currentThread().getName());
 					if (!rs.underRemoval.isEmpty()) {
 						didRemovals = true;
 						final int urLen = rs.underRemoval.size();
@@ -464,6 +466,7 @@ public abstract class ResourceSpreader {
 						rs.underRemoval.clear();
 					}
 					// managing additions
+					System.out.println("managing additions "+ Thread.currentThread().getName());
 					if (!rs.underAddition.isEmpty()) {
 						if (rs.underProcessingLen == 0) {
 							rs.lastNotifTime = fires;
@@ -494,7 +497,7 @@ public abstract class ResourceSpreader {
 									// Make sure, that if we encounter this cp
 									// next time we will not try to add all its
 									// dep group
-									setSyncer(cp);
+									//setSyncer(cp);
 								}
 							}
 						}
@@ -508,6 +511,7 @@ public abstract class ResourceSpreader {
 			} while (didExtension || nudged);
 
 			// Phase II. managing separation of influence groups
+				System.out.println("Phase II. managing separation of influence groups"+ Thread.currentThread().getName());
 			if (didRemovals) {
 				// Marking all current members of the depgroup as non members
 				for (int i = 0; i < depgrouplen; i++) {
@@ -525,12 +529,14 @@ public abstract class ResourceSpreader {
 						if (rs.stillInDepGroup) {
 							break;
 						}
+						System.out.println("Setting Syncer to null"+ Thread.currentThread().getName());
 						setSyncer(rs);
 					}
 					if (classifiableindex < notClassifiedLen) {
 						notClassifiedLen -= classifiableindex;
 						providerCount -= classifiableindex;
 						// Remove the unused front
+						System.out.println("Removals "+ Thread.currentThread().getName());
 						System.arraycopy(notClassified, classifiableindex, notClassified, 0, notClassifiedLen);
 						// Remove the not classified items
 						ResourceSpreader[] stillNotClassified = null;
@@ -560,6 +566,7 @@ public abstract class ResourceSpreader {
 						}
 						// We now have the new groups so we can start
 						// subscribing
+						System.out.println("We now have the new groups so we can start subscribing "+ Thread.currentThread().getName());
 						FreqSyncer subscribeMe;
 						if (notClassified == myDepGroup) {
 							depgrouplen = notClassifiedLen;
@@ -569,6 +576,7 @@ public abstract class ResourceSpreader {
 							subscribeMe = new FreqSyncer(notClassified, providerCount, notClassifiedLen);
 						}
 						// Ensuring freq updates for every newly created group
+						System.out.println("Updating freq for new created groups "+ Thread.currentThread().getName());
 						subscribeMe.updateMyFreqNow();
 						if (stillNotClassified == null) {
 							// No further spreaders to process
@@ -818,13 +826,13 @@ public abstract class ResourceSpreader {
 	 */
 	private void doProcessing(final long currentFireCount) {
 		synchronized (lock) {
-			System.out.println(Thread.currentThread().getName()+" ENTERING DOPROCESSING PROTECTED SECTION"+" time: "+System.currentTimeMillis());
+			//System.out.println(Thread.currentThread().getName()+" ENTERING DOPROCESSING PROTECTED SECTION"+" time: "+System.currentTimeMillis());
 			if (mySyncer == null) {
 				//System.out.println("null syncer : " + this.toString());
-				System.out.println("*****NULL DOPROCESSING"+Thread.currentThread().getName()+" time: "+System.currentTimeMillis());
+				//System.out.println("***NULL DOPROCESSING"+Thread.currentThread().getName()+" time: "+System.currentTimeMillis());
 			}
 			//System.out.println("not null syncer : " + this.toString());
-			System.out.println("*****DOPROCESSING "+Thread.currentThread().getName()+" time: "+System.currentTimeMillis());
+			//System.out.println("*****DOPROCESSING "+Thread.currentThread().getName()+" time: "+System.currentTimeMillis());
 			if (currentFireCount == lastNotifTime && mySyncer.isRegularFreqMode()) {
 				return;
 			}
@@ -853,7 +861,7 @@ public abstract class ResourceSpreader {
 				removeTheseConsumptions(toRemove, remIdx);
 			}
 			lastNotifTime = currentFireCount;
-			System.out.println(Thread.currentThread().getName()+" LEAVING DOPROCESSING PROTECTED SECTION ******"+" time: "+System.currentTimeMillis());
+			//System.out.println(Thread.currentThread().getName()+" LEAVING DOPROCESSING PROTECTED SECTION ******"+" time: "+System.currentTimeMillis());
 		}
 	}
 
